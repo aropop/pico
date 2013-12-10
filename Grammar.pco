@@ -93,12 +93,12 @@
   VOI():
     [ VOI_tag ];
     
-  MTX_tag: 14;
-  MTX(Nam, Dim, Tab):
-  	[MTX_tag, Nam, Dim, Tab]
-  MTX_NAM_idx: 2;
-  MTX_DIM_idx: 3;
-  MTX_TAB_idx: 4;
+  
+  MAT_tag: 14;  `matrix`
+  MAT(Nam, Idx):
+  	[MAT_tag, Nam, Idx];
+  MAT_NAM_idx: 2;
+  MAT_IDX_idx: 3;
 
   Empty:= TAB([]);
   Eoln := TXT(eoln);

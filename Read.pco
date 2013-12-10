@@ -89,9 +89,10 @@
 
       tabulation(Var):
         { skip();
-          idx: expression(); `hier moeten we een test voor comma list hebben `
-          if(token = RBR_token, skip(), message()); `test hier zou geneste if moeten zijn om te checken voor comma's `
-          TBL(Var, idx) };
+          idx: list(COM_token, RBR_token); 
+          `if(token = RBR_token, skip(), message()); `
+          TBL(Var, idx) };  `idx is now a TAB of the dimensions`
+          
 
       variable(Var):
         VAR(Var);
@@ -120,7 +121,7 @@
                      XOP_token => prefix,
                      LPR_token => application,
                      CAT_token => apply,
-                     LBR_token => tabulation,
+                     LBR_token => tabulation, 
                           else => variable);
 
       operator():

@@ -43,8 +43,7 @@
 `                                                                `
 ` <apply>         ::= <variable> @ <invocation>                  `
 `                                                                `
-` <tabulation>    ::= <name> [ <expression> ] 					 `
-` <tabulation>    ::= <name> [ <commalist>  ]                    `
+` <tabulation>    ::= <name> [ <commalist> ] 					 `
 `                                                                `
 ` <subexpression> ::= ( <expression> )                           `
 `                                                                `

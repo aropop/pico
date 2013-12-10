@@ -96,7 +96,7 @@
                   nat@arg },
                 error('(native) function required'))) };
 
-      eval_tabulation(Exp):
+      eval_tabulation(Exp): `hierin moet aangepast worden om idx te gebruiken als tabel`
         { nam: Exp[TBL_NAM_idx];
           exp: get(nam, DCT);
           if(exp[TAG_idx] = TAB_tag,
@@ -131,16 +131,18 @@
         { nam: Tbl[TBL_NAM_idx];
           idx: Tbl[TBL_IDX_idx];
           val: eval(idx);
-          if(val[TAG_idx] = NBR_tag,
-             { nbr: val[NBR_VAL_idx];
-               if(nbr < 0,
-                  error('negative size'),
-                  { exp: if(nbr > 0,
-                            { tab[nbr]: eval(Exp);
-                              TAB(tab) },
-                            Empty );
-                    DCT:= add(nam, exp, DCT);
-                    exp }) },
+          if(val[TAG_idx] = TAB_tag,
+          	 { tab_with_indices: val[TAB_TAB_idx];
+          	   if(size(tab_with_indices) = 1, `hier nog werken`
+            	 { nbr: val[NBR_VAL_idx];
+            	   if(nbr < 0,
+               	   error('negative size'),
+             		     { exp: if(nbr > 0,
+               	             { tab[nbr]: eval(Exp);
+            	                  TAB(tab) },
+            	                Empty );
+             	       DCT:= add(nam, exp, DCT);
+              	      exp }) },
              error('invalid size')) }; 
    
       define_error(Inv, Exp):
