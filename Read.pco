@@ -89,8 +89,8 @@
 
       tabulation(Var):
         { skip();
-          idx: expression();
-          if(token = RBR_token, skip(), message());
+          idx: expression(); `hier moeten we een test voor comma list hebben `
+          if(token = RBR_token, skip(), message()); `test hier zou geneste if moeten zijn om te checken voor comma's `
           TBL(Var, idx) };
 
       variable(Var):

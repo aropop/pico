@@ -92,6 +92,13 @@
   VOI_tag: 13;
   VOI():
     [ VOI_tag ];
+    
+  MTX_tag: 14;
+  MTX(Nam, Dim, Tab):
+  	[MTX_tag, Nam, Dim, Tab]
+  MTX_NAM_idx: 2;
+  MTX_DIM_idx: 3;
+  MTX_TAB_idx: 4;
 
   Empty:= TAB([]);
   Eoln := TXT(eoln);

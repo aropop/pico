@@ -2,7 +2,7 @@
 `*             >>>Pico<<<            *`
 `*            Theo D'Hondt           *`
 `*  VUB Programming Technology Lab   *`
-`*               ©1997               *`
+`*               ï¿½1997               *`
 `*-----------------------------------*`
 `------------------------------------------------abstract-syntax-`
 ` <expression>  ::= <number>                                     `
@@ -22,6 +22,7 @@
 ` <fraction>    ::= FRC <fraction>                               `
 ` <text>        ::= TXT <text>                                   `
 ` <table>       ::= TAB <table>                                  `
+` <matrix>		::= MTX <dimensions> <table>					 `
 ` <function>    ::= FUN <identifier> <arguments>                 `
 `                                    <expression> <dictionary>   `
 ` <native>      ::= NAT <identifier> <function>                  `
@@ -37,6 +38,7 @@
 `                                                                `
 ` <arguments>   ::= <table>                                      `
 ` <arguments>   ::= <invocation>                                 `
+` <dimensions>  ::= <table>										 `
 `                                                                `
 ` <invocation>  ::= <variable>                                   `
 ` <invocation>  ::= <application>                                `
