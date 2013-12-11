@@ -133,16 +133,35 @@
           val: eval(idx);
           if(val[TAG_idx] = TAB_tag,
           	 { tab_with_indices: val[TAB_TAB_idx];
-          	   if(size(tab_with_indices) = 1, `hier nog werken`
-            	 { nbr: val[NBR_VAL_idx];
+          	   if(size(tab_with_indices) = 1,
+            	 {                 
+                     val := tab_with_indices[1];
+            	   nbr: val[NBR_VAL_idx];
             	   if(nbr < 0,
-               	   error('negative size'),
+               	   	error('negative size'),
              		     { exp: if(nbr > 0,
-               	             { tab[nbr]: eval(Exp);
+               	             { tab[nbr]: eval(Exp); 
             	                  TAB(tab) },
             	                Empty );
              	       DCT:= add(nam, exp, DCT);
               	      exp }) },
+              	      `hier code voor matrices`
+                        { 
+                        total_size: 1;
+                        dim_tab[size(tab_with_indices)] : void;                        
+                        for(i:1, i:= i + 1, i < (size(tab_with_indices) + 1),
+                              { current : tab_with_indices[i];
+                              if(current[TAG_idx] = NBR_tag,
+                                     { current_index: current[NBR_VAL_idx];
+                                       if(current_index < 0, error('Negative dimension'),
+                                              if(current_index = 0, dim[i] := current_index, 
+                                              { total_size := total_size * current_index;
+                                                dim_tab[i] := current_index }))  
+                                          },                        
+                                     error('Not a number as dimension')) });
+                         tab[total_size]: eval(Exp);
+                         MAT(tab, dim_tab)  }         
+              	      ) }, 
              error('invalid size')) }; 
    
       define_error(Inv, Exp):

@@ -84,6 +84,9 @@
             
       print_dictionary(Exp): 
         display('<dictionary>');
+
+      print_matrix(Exp):
+         print_list(Exp[MAT_TAB_idx],'[',',',']');
             
       exp_case: case(NBR_tag => print_number,
                      FRC_tag => print_fraction,
@@ -97,6 +100,7 @@
                      DEF_tag => print_definition,
                      SET_tag => print_assignment,
                      DCT_tag => print_dictionary,
+                     MAT_tag => print_matrix,
                      VOI_tag => print_void);
       
       print_expression(Exp):=

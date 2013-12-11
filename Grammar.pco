@@ -95,10 +95,10 @@
     
   
   MAT_tag: 14;  `matrix`
-  MAT(Nam, Idx):
-  	[MAT_tag, Nam, Idx];
-  MAT_NAM_idx: 2;
-  MAT_IDX_idx: 3;
+  MAT(Tab, Dim):
+  	[MAT_tag, Tab, Dim];
+  MAT_TAB_idx: 2;
+  MAT_DIM_idx: 3;
 
   Empty:= TAB([]);
   Eoln := TXT(eoln);
