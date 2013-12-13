@@ -101,6 +101,8 @@
           exp: get(nam, DCT);
           if(exp[TAG_idx] = TAB_tag,
              { idx: Exp[TBL_IDX_idx];
+               idx:= idx[TAB_TAB_idx]; `since a tab has only 1 index`
+               idx:= idx[1];
                val: eval(idx);
                if(val[TAG_idx] = NBR_tag,
                   { nbr: val[NBR_VAL_idx];
@@ -111,7 +113,20 @@
                             tab[nbr]) },
                        error('non-positive index')) },
                   error('invalid index')) },
-             error('table required')) };
+             if(exp[TAG_idx] = MAT_tag, 
+                  {dim_table: exp[MAT_DIM_idx];
+                   content_table: exp[MAT_TAB_idx];
+                   idx_table: Exp[TBL_IDX_idx];
+                   idx_table: idx_table[TAB_TAB_idx]; `reify`
+                   if(size(idx_table) = size(dim_table),
+                        {total_idx:1;
+                        for(i:1, i:= i + 1, i < size(idx_table),
+                              {idx_meta_val: idx_table[i];
+                              total_idx:= total_idx + (idx_meta_val[NBR_VAL_idx] * dim_table[i])});
+                         content_table[total_idx]},
+                         error('the dimensions do not match'))
+                  },
+                  error('table required'))) };
 
       define_variable(Var, Exp):
         { nam: Var[VAR_NAM_idx];

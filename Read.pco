@@ -90,7 +90,6 @@
       tabulation(Var):
         { skip();
           idx: list(COM_token, RBR_token); 
-          `if(token = RBR_token, skip(), message()); `
           TBL(Var, idx) };  `idx is now a TAB of the dimensions`
           
 
