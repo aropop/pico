@@ -43,6 +43,9 @@
          Tab[TAB_TAB_idx],
          error('table required'));
 
+    reify_MAT(Mat):
+      if(Mat[TAG_idx]=MAT_tag, Mat[MAT_TAB_idx], error('Matrix required'));
+
     deify_NBR(Nbr):
       if(is_number(Nbr), 
          NBR(Nbr), 
@@ -207,7 +210,9 @@
          
     size_fun@Arg:
       arg_1(Arg,
-            deify_NBR(size(reify_TAB(p))));
+            deify_NBR(if(p[TAG_idx] = MAT_tag, 
+                              size(reify_MAT(p)),
+                              size(reify_TAB(p)))));
 
     display_fun@Arg:
       {tab: reify_TAB(Arg);

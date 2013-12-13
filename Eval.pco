@@ -160,7 +160,9 @@
                                           },                        
                                      error('Not a number as dimension')) });
                          tab[total_size]: eval(Exp);
-                         MAT(tab, dim_tab)  }         
+                         to_add: MAT(tab, dim_tab);
+                         DCT:= add(nam,to_add,DCT);
+                         to_add  }         
               	      ) }, 
              error('invalid size')) }; 
    
