@@ -214,6 +214,8 @@
           exp: get(nam, DCT);
           if(exp[TAG_idx] = TAB_tag,
              { idx: Tbl[TBL_IDX_idx];
+               idx:= idx[TAB_TAB_idx]; `since a tab has only 1 index`
+               idx:= idx[1];
                val: eval(idx);
                if(val[TAG_idx] = NBR_tag,
                   { nbr: val[NBR_VAL_idx];
