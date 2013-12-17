@@ -122,7 +122,7 @@
                         {total_idx:1;
                         for(i:1, i:= i + 1, i < size(idx_table),
                               {idx_meta_val: idx_table[i];
-                              total_idx:= total_idx + (idx_meta_val[NBR_VAL_idx] * dim_table[i])});
+                              total_idx:= total_idx + ((idx_meta_val[NBR_VAL_idx] - 1) * dim_table[i])});
                          content_table[total_idx]},
                          error('the dimensions do not match'))
                   },

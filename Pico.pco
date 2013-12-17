@@ -8,8 +8,8 @@
     { make_global();
       display('start Pico', eoln);
       entry: accept(); 
-      while(true,
-            { if(entry = '',display(eoln), {display(eoln);
+      while(not(entry='exit'),
+            { if(entry = '',{display(eoln); entry:=accept()}, {display(eoln);
               print(eval(read(entry)));
               display(eoln);
               entry:= accept() })});
