@@ -49,6 +49,8 @@ static _NIL_TYPE_ TBL(_NIL_TYPE_);
 static _NIL_TYPE_ TXT(_NIL_TYPE_);
 static _NIL_TYPE_ VAR(_NIL_TYPE_);
 static _NIL_TYPE_ VOI(_NIL_TYPE_);
+static _NIL_TYPE_ MAT(_NIL_TYPE_);
+static _NIL_TYPE_ MAt(_NIL_TYPE_);
 
 /* private variables */
 
@@ -66,7 +68,7 @@ static const _CNT_TYPE_ CNT_tab[] =
      SET,
      DCT,
      ENV,
-     NYI,
+     MAT,
      NYI,
      NYI, 
      NBR }; 
@@ -271,6 +273,63 @@ static _NIL_TYPE_ TAb(_NIL_TYPE_)
    else
      { _stk_poke_EXP_(_EOLN_);
        _stk_zap_CNT_(); 
+       _print_("]"); }}
+
+/*------------------------------------------------------------------------*/
+/*  MAT                                                                   */
+/*     expr-stack: [... ... ... ... ... MAT] -> [... ... ... MAT *1* EXP] */
+/*     cont-stack: [... ... ... ... ... MAT] -> [... ... ... ... MAt EXP] */
+/*                                                                        */
+/*     expr-stack: [... ... ... ... ... MAT] -> [... ... ... ... ... EOL] */
+/*     cont-stack: [... ... ... ... ... MAT] -> [... ... ... ... ... ...] */
+/*------------------------------------------------------------------------*/
+static _NIL_TYPE_ MAT(_NIL_TYPE_)
+ { _EXP_TYPE_ exp;
+   _UNS_TYPE_ siz;
+   _stk_claim_();
+   _stk_peek_EXP_(exp);
+   siz = _ag_get_MAT_TOT_SIZE(exp);
+   if (siz > _DIM_SIZE_SIZE_)
+     { exp = _ag_get_MAT_EXP_(exp, 1);
+       _stk_push_EXP_(_ONE_);
+       _stk_push_EXP_(exp);
+       _stk_poke_CNT_(MAt);
+       _stk_push_CNT_(EXP);
+       _print_("["); }
+   else
+     { _stk_poke_EXP_(_EOLN_);
+       _stk_zap_CNT_();
+       _print_("[]"); }}
+
+/*------------------------------------------------------------------------*/
+/*  MAt                                                                   */
+/*     expr-stack: [... ... ... MAT NBR VOI] -> [... ... ... MAT NBR EXP] */
+/*     cont-stack: [... ... ... ... ... MAt] -> [... ... ... ... MAt EXP] */
+/*                                                                              */
+/*     expr-stack: [... ... ... ... MAT NBR] -> [... ... ... ... ... EOL] */
+/*     cont-stack: [... ... ... ... ... MAt] -> [... ... ... ... ... ...] */
+/*------------------------------------------------------------------------*/
+static _NIL_TYPE_ MAt(_NIL_TYPE_)
+ { _EXP_TYPE_ nbr, exp, voi, dim_siz;
+   _UNS_TYPE_ idx, siz;
+   _stk_claim_();
+   _stk_pop_EXP_(voi);
+   _stk_pop_EXP_(nbr);
+   _stk_peek_EXP_(exp);
+   idx = _ag_get_NBU_(nbr);
+   dim_siz = _ag_get_DIM_SIZE_(exp);
+   siz = _ag_get_MAT_TOT_SIZE(exp);
+   siz = siz - _ag_get_NBU_(dim_siz);
+   siz = siz - _DIM_SIZE_SIZE_;
+   if (idx < siz)
+     { _stk_push_EXP_(_ag_succ_NBR_(nbr));
+       exp = _ag_get_MAT_EXP_(exp, idx+1);
+       _stk_push_EXP_(exp);
+       _stk_push_CNT_(EXP);
+       _print_(", "); }
+   else
+     { _stk_poke_EXP_(_EOLN_);
+       _stk_zap_CNT_();
        _print_("]"); }}
 
 /*------------------------------------------------------------------------*/

@@ -40,6 +40,7 @@ static _NIL_TYPE_ SLF(_NIL_TYPE_);
 static _NIL_TYPE_ SWP(_NIL_TYPE_);
 static _NIL_TYPE_ TBL(_NIL_TYPE_);
 static _NIL_TYPE_ VAR(_NIL_TYPE_);
+static _NIL_TYPE_ FILDIM(_NIL_TYPE_);
 
 /* private variables */
 
@@ -74,7 +75,7 @@ DEF, /* DEF */
 SET, /* SET */
 SLF, /* DCT */
 SLF, /* ENV */
-NYI, /* NYI */
+SLF, /* MAT */
 NYI, /* NYI */
 NYI, /* NYI */
 SLF }; /* NBR */
@@ -393,7 +394,7 @@ static _NIL_TYPE_ DEF(_NIL_TYPE_) {
 		_ag_set_DCT_NAM_(dct, nam);
 		_stk_poke_EXP_(dct);
 		_stk_push_EXP_(exp);
-		_stk_push_EXP_(idx);
+		_stk_push_EXP_(idx); //pushed de index expressie om daarna geevalueerd te worden
 		_stk_poke_CNT_(IDX);
 		_stk_push_CNT_(EXP);
 		break;
@@ -403,12 +404,17 @@ static _NIL_TYPE_ DEF(_NIL_TYPE_) {
 }
 
 /*------------------------------------------------------------------------*/
-/*  IDX                                                                   */
-/*     expr-stack: [... ... ... DCT EXP NBR] -> [... DCT TAB EXP *1* EXP] */
+/*  IDX                                  1                 2              */ //exp is de exp waarmee de tabel wordt opgevuld
+/*     expr-stack: [... ... ... DCT EXP TAB] -> [... DCT TAB EXP *1* EXP] */
 /*     cont-stack: [... ... ... ... ... IDX] -> [... ... ... ... INI EXP] */
-/*                                                                        */
-/*     expr-stack: [... ... ... DCT EXP NBR] -> [... ... ... ... ... *E*] */
+/*                                       1                                */
+/*     expr-stack: [... ... ... DCT EXP TAB] -> [DCT EXP TAB SIZ *1* EXP] */ //siz is the dim size size
+/*     cont-stack: [... ... ... ... ... IDX] -> [... ... ... INI FILDIM EXP] */
+/*                                       1                                */
+/*     expr-stack: [... ... ... DCT EXP TAB] -> [... ... ... ... ... *E*] *///error
 /*     cont-stack: [... ... ... ... ... IDX] -> [... ... ... ... ... ...] */
+/*  1 Tab with the dimensions			                                  */
+/*  2 The tab, only needs to be filled	                                  */
 /*------------------------------------------------------------------------*/
 static _NIL_TYPE_ IDX(_NIL_TYPE_) {
 	_EXP_TYPE_ dct, exp, dim, tab; //todo: matrify
@@ -432,7 +438,7 @@ static _NIL_TYPE_ IDX(_NIL_TYPE_) {
 			_UNS_TYPE_ table_size_int;
 			//read the only dimension from the dimension table
 			table_size = _ag_get_TAB_EXP_(dim, siz);
-			table_size_int = _ag_get_NBR_(table_size); //convert to unsigned int
+			table_size_int = _ag_get_NBR_(table_size); //convert to int
 			_mem_claim_SIZ_(table_size_int); //claim
 			tab = _ag_make_TAB_(table_size_int);
 			_stk_peek_EXP_(exp);
@@ -443,7 +449,18 @@ static _NIL_TYPE_ IDX(_NIL_TYPE_) {
 			_stk_poke_CNT_(INI);
 			_stk_push_CNT_(EXP);
 		} else if (siz > 0){
-			printf("matrices :)");
+			_EXP_TYPE_ first_dim, mat_size;
+			_UNS_TYPE_ mat_size_int;
+			mat_size_int = 1; //neutral element for the multiplication
+			mat_size = _ag_make_NBU_(mat_size_int);
+			first_dim = _ag_get_TAB_EXP_(dim, 1);
+			_stk_push_EXP_(dim);
+			_stk_push_EXP_(mat_size);
+			_stk_push_EXP_(_ONE_);
+			_stk_push_EXP_(first_dim);
+			_stk_poke_CNT_(INI);
+			_stk_push_CNT_(FILDIM);
+			_stk_push_CNT_(EXP);
 		}else{
 			_error_(_SIZ_ERROR_);
 		}
@@ -451,27 +468,107 @@ static _NIL_TYPE_ IDX(_NIL_TYPE_) {
 		_error_(_SIZ_ERROR_);
 	}
 }
+/*------------------------------------------------------------------------*/
+/*  FILDIM                                                                */
+/*     expr-stack: [... DCT EXP TAB SIZ IDX VAL] -> [DCT MAT EXP *1* EXP] */
+/*     cont-stack: [... ... ... ... INI FILDIM] -> [... ... ... INI EXP]  */
+/*                      1                                                 */
+/*     expr-stack: [DCT EXP TAB SIZ IDX VAL] -> [DCT EXP TAB SIZ IDX EXP] */ //recursie stap
+/*     cont-stack: [... ... ... INI FILDIM] -> [... ... ... INI FILDIM EXP]*/
+/*  1 expression that fills up the matrice                                */
+/*------------------------------------------------------------------------*/
+static _NIL_TYPE_ FILDIM(_NIL_TYPE_){
+	_EXP_TYPE_ tab, siz, idx, val, exp;
+	_UNS_TYPE_ size_int, index_int, val_int, tab_siz_int;
+	_stk_claim_();
+	_stk_pop_EXP_(val);
+	_stk_pop_EXP_(idx);
+	_stk_pop_EXP_(siz);
+	_stk_peek_EXP_(tab);
+	index_int = _ag_get_NBU_(idx);
+	size_int = _ag_get_NBU_(siz);
+	val_int = _ag_get_NBU_(val);
+	size_int *= val_int;
+	tab_siz_int = _ag_get_TAB_SIZ_(tab);
+	_ag_set_TAB_EXP_(tab, index_int, val); //put simple exp back in the tab so we can transfer them later in the dimesions
+	if(index_int < tab_siz_int){
+		idx = _ag_succ_NBR_(idx);
+		index_int = index_int + 1;
+		exp = _ag_get_TAB_EXP_(tab, index_int);
+		siz = _ag_make_NBU_(size_int);
+		_stk_push_EXP_(siz);
+		_stk_push_EXP_(idx);
+		_stk_push_EXP_(exp);
+		_stk_push_CNT_(EXP);
+	}else{
+		_EXP_TYPE_ mat;
+		_stk_pop_EXP_(tab);
+		_stk_pop_EXP_(exp);
+		size_int += _DIM_SIZE_SIZE_;
+		size_int += tab_siz_int;
+		_mem_claim_SIZ_(size_int);
+		mat = _ag_make_MAT(size_int);
+		_TAG_TYPE_ tag;
+		tag = _ag_get_TAG_(mat);
+
+		_ag_set_MAT_dim_siz_(mat, _ag_make_NBU_(tab_siz_int));
+		_UNS_TYPE_ i;
+		for(i = 1; i < tab_siz_int; i++){
+			_ag_set_MAT_dim_(mat, _ag_get_TAB_EXP_(tab, i), i);
+		}
+		_stk_push_EXP_(mat);
+		_stk_push_EXP_(exp);
+		_stk_push_EXP_(_ONE_);
+		_stk_push_EXP_(exp);
+		_stk_poke_CNT_(EXP);
+	}
+
+
+}
+
+static _NIL_TYPE_ FILTAB(_NIL_TYPE_){
+
+}
 
 /*------------------------------------------------------------------------*/
 /*  INI                                                                   */
-/*     expr-stack: [... DCT TAB EXP NBR VAL] -> [... DCT TAB EXP NBR EXP] */
+/*     expr-stack: [... DCT TAB EXP NBR VAL] -> [... DCT TAB EXP NBR EXP] */ //moet nog verder doen
+/*     cont-stack: [... ... ... ... ... INI] -> [... ... ... ... INI EXP] */
+/*                                                                        */
+/*     expr-stack: [... DCT MAT EXP NBR VAL] -> [... DCT MAT EXP NBR EXP] */
 /*     cont-stack: [... ... ... ... ... INI] -> [... ... ... ... INI EXP] */
 /*                                                                        */
 /*     expr-stack: [... DCT TAB EXP NBR VAL] -> [... ... ... ... ... TAB] */
 /*     cont-stack: [... ... ... ... ... INI] -> [... ... ... ... ... ...] */
+/*                                                                        */
+/*     expr-stack: [... DCT MAT EXP NBR VAL] -> [... ... ... ... ... MAT] */
+/*     cont-stack: [... ... ... ... ... INI] -> [... ... ... ... ... ...] */
 /*------------------------------------------------------------------------*/
-static _NIL_TYPE_ INI(_NIL_TYPE_) {
+static _NIL_TYPE_ INI(_NIL_TYPE_) { //TODO: matrify
 	_EXP_TYPE_ dct, exp, nbr, tab, val;
 	_UNS_TYPE_ ctr, siz;
+	_TAG_TYPE_ tag;
 	_stk_claim_();
 	_stk_pop_EXP_(val);
 	_stk_pop_EXP_(nbr);
 	_stk_pop_EXP_(exp);
 	_stk_peek_EXP_(tab);
-	siz = _ag_get_TAB_SIZ_(tab);
-	ctr = _ag_get_NBU_(nbr);
-	_ag_set_TAB_EXP_(tab, ctr, val);
-	if (ctr < siz) {
+	tag = _ag_get_TAG_(tab);
+	ctr = _ag_get_NBU_(nbr); //hoever we in het opvullen zijn
+	if(tag == _TAB_TAG_){
+		siz = _ag_get_TAB_SIZ_(tab);
+		_ag_set_TAB_EXP_(tab, ctr, val);
+	}else if (tag == _MAT_TAG_){
+		_EXP_TYPE_ dim_size;
+		dim_size = _ag_get_DIM_SIZE_(tab);
+		siz = _ag_get_MAT_TOT_SIZE(tab);
+		siz = siz - _ag_get_NBU_(dim_size);
+		siz = siz - _DIM_SIZE_SIZE_;
+		_ag_set_MAT_val_(tab, _ag_get_NBU_(dim_size), val, ctr);
+	}else{
+		_error_(_TAG_ERROR_	);
+	}
+	if (ctr < siz) { //nog niet klaar
 		nbr = _ag_succ_NBR_(nbr);
 		_stk_push_EXP_(exp);
 		_stk_push_EXP_(nbr);

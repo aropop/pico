@@ -79,7 +79,7 @@
 #define _ENV_SIZE_    4
 /*groote van het numer dat zegt hoe groot de dimensie lijst is*/
 #define _DIM_SIZE_SIZE_ 1
-
+#define _MAT_DIM_IDX_ 1
 /* private macros */
 
 #ifdef NDEBUG
@@ -110,7 +110,7 @@
 
 /*SIZ is hier de total size (size dimensies + size table) */
 #define _ag_make_MAT(SIZ)\
-	_mem_make_chunk_(SIZ + _DIM_SIZE_SIZE_, _MAT_TAG_)
+  _mem_make_chunk_(SIZ, _MAT_TAG_)
 
 #define _ag_make_FUN_()\
   _mem_make_chunk_(_FUN_SIZE_, _FUN_TAG_)             
@@ -165,7 +165,16 @@
  _mem_get_cnt_(TAB, IDX)
 
 #define _ag_get_DIM_SIZE_(MAT)\
-	_mem_get_exp_(MAT, 0)
+	_mem_get_exp_(MAT, _MAT_DIM_IDX_)
+
+#define _ag_get_MAT_DIM_(MAT, IDX)\
+	_mem_get_exp_(MAT, IDX + _DIM_SIZE_SIZE_)
+
+#define _ag_get_MAT_TOT_SIZE(MAT)\
+	_mem_chunk_size_(MAT)
+
+#define _ag_get_MAT_EXP_(MAT, IDX)\
+	_mem_get_exp_(MAT, IDX + _DIM_SIZE_SIZE_ + _ag_get_NBU_(_ag_get_DIM_SIZE_(MAT)))
 
 #define _ag_get_NBR_(NBR)\
  _mem_get_nbr_(CHK_AGR(NBR, _NBR_TAG_))
@@ -247,6 +256,13 @@
  
 #define _ag_set_TAB_CNT_(TAB, IDX, CNT)\
  _mem_set_cnt_(TAB, IDX, CNT)
+
+#define _ag_set_MAT_dim_siz_(MAT, DIM_SIZE_EXP)\
+	_mem_set_exp_(MAT, _MAT_DIM_IDX_, DIM_SIZE_EXP)
+#define _ag_set_MAT_dim_(MAT, DIM, IDX)\
+	_mem_set_exp_(MAT, IDX + _DIM_SIZE_SIZE_, DIM)
+#define _ag_set_MAT_val_(MAT, DIM_SIZE, VAL, IDX)\
+	_mem_set_exp_(MAT, IDX + DIM_SIZE + _DIM_SIZE_SIZE_, VAL)
 
 #define _ag_set_FUN_NAM_(FUN, NAM)\
  _mem_set_exp_(CHK_AGR(FUN, _FUN_TAG_), FUN_NAM_INDEX, NAM)
@@ -337,11 +353,10 @@ typedef enum { _VOI_TAG_ = 0 ,
                _SET_TAG_ = 10,
                _DCT_TAG_ = 11,
                _ENV_TAG_ = 12,
-               _NY1_TAG_ = 13,
+               _MAT_TAG_ = 13,
                _NY2_TAG_ = 14,
                _NY3_TAG_ = 15,
-               _NBR_TAG_ = 16,
-			   _MAT_TAG_ = 17} _TAG_TYPE_;
+               _NBR_TAG_ = 16} _TAG_TYPE_;
 
 typedef          char     _BUF_TYPE_[_BUF_SIZE_];
 

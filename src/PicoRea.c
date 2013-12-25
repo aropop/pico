@@ -209,7 +209,7 @@ static _NIL_TYPE_ CMp(_NIL_TYPE_) {
 /*------------------------------------------------------------------------*/
 static _NIL_TYPE_ COM(_NIL_TYPE_) //comma list
 {
-	_EXP_TYPE_ exp, nbr, tab,aplication_or_not; //TODO aanpassen voor extra bool op de stack
+	_EXP_TYPE_ exp, nbr, tab,aplication_or_not;
 	_UNS_TYPE_ ctr;
 	_stk_claim_();
 	_stk_pop_EXP_(exp);
@@ -551,7 +551,6 @@ static _NIL_TYPE_ REF(_NIL_TYPE_) {
 			_stk_poke_CNT_(TBL);
 			_stk_push_EXP_(_ONE_);
 			_stk_push_EXP_(_FALSE_);
-			//TODO
 			//zet one op de stack waarna de index expressie erop komt, wij willen natuurlijk dat er meer opkomt
 			_stk_push_CNT_(COM);//zouden ervoor moeten zorgen dat com geen apl meer achterlaat
 			//_stk_push_CNT_(IDX);
