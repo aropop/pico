@@ -41,6 +41,7 @@ static _NIL_TYPE_ SWP(_NIL_TYPE_);
 static _NIL_TYPE_ TBL(_NIL_TYPE_);
 static _NIL_TYPE_ VAR(_NIL_TYPE_);
 static _NIL_TYPE_ FILDIM(_NIL_TYPE_);
+static _NIL_TYPE_ MIX(_NIL_TYPE_);
 
 /* private variables */
 
@@ -57,7 +58,7 @@ static const _BYT_TYPE_ TAB_tab[] = { 0, /* VOI */
 1, /* SET */
 1, /* DCT */
 1, /* ENV */
-0, /* NYI */
+1, /* MAT */
 0, /* NYI */
 0, /* NYI */
 0 }; /* NBR */
@@ -388,13 +389,14 @@ static _NIL_TYPE_ DEF(_NIL_TYPE_) {
 		_stk_poke_EXP_(fun);
 		_stk_zap_CNT_();
 		break;
-	case _TBL_TAG_: //todo: matrify
+	case _TBL_TAG_:
 		nam = _ag_get_TBL_NAM_(inv);
 		idx = _ag_get_TBL_IDX_(inv);
 		_ag_set_DCT_NAM_(dct, nam);
 		_stk_poke_EXP_(dct);
 		_stk_push_EXP_(exp);
-		_stk_push_EXP_(idx); //pushed de index expressie om daarna geevalueerd te worden
+		_stk_push_EXP_(idx);
+		//pushed de index expressie om daarna geevalueerd te worden
 		_stk_poke_CNT_(IDX);
 		_stk_push_CNT_(EXP);
 		break;
@@ -411,13 +413,13 @@ static _NIL_TYPE_ DEF(_NIL_TYPE_) {
 /*     expr-stack: [... ... ... DCT EXP TAB] -> [DCT EXP TAB SIZ *1* EXP] */ //siz is the dim size size
 /*     cont-stack: [... ... ... ... ... IDX] -> [... ... ... INI FILDIM EXP] */
 /*                                       1                                */
-/*     expr-stack: [... ... ... DCT EXP TAB] -> [... ... ... ... ... *E*] *///error
+/*     expr-stack: [... ... ... DCT EXP TAB] -> [... ... ... ... ... *E*] */ //error
 /*     cont-stack: [... ... ... ... ... IDX] -> [... ... ... ... ... ...] */
 /*  1 Tab with the dimensions			                                  */
 /*  2 The tab, only needs to be filled	                                  */
 /*------------------------------------------------------------------------*/
 static _NIL_TYPE_ IDX(_NIL_TYPE_) {
-	_EXP_TYPE_ dct, exp, dim, tab; //todo: matrify
+	_EXP_TYPE_ dct, exp, dim, tab;
 	_TAG_TYPE_ tag;
 	_UNS_TYPE_ siz;
 	_stk_claim_();
@@ -439,7 +441,8 @@ static _NIL_TYPE_ IDX(_NIL_TYPE_) {
 			//read the only dimension from the dimension table
 			table_size = _ag_get_TAB_EXP_(dim, siz);
 			table_size_int = _ag_get_NBR_(table_size); //convert to int
-			_mem_claim_SIZ_(table_size_int); //claim
+			_mem_claim_SIZ_(table_size_int);
+			//claim
 			tab = _ag_make_TAB_(table_size_int);
 			_stk_peek_EXP_(exp);
 			_stk_poke_EXP_(tab);
@@ -448,7 +451,7 @@ static _NIL_TYPE_ IDX(_NIL_TYPE_) {
 			_stk_push_EXP_(exp);
 			_stk_poke_CNT_(INI);
 			_stk_push_CNT_(EXP);
-		} else if (siz > 0){
+		} else if (siz > 0) {
 			_EXP_TYPE_ first_dim, mat_size;
 			_UNS_TYPE_ mat_size_int;
 			mat_size_int = 1; //neutral element for the multiplication
@@ -461,7 +464,7 @@ static _NIL_TYPE_ IDX(_NIL_TYPE_) {
 			_stk_poke_CNT_(INI);
 			_stk_push_CNT_(FILDIM);
 			_stk_push_CNT_(EXP);
-		}else{
+		} else {
 			_error_(_SIZ_ERROR_);
 		}
 	} else {
@@ -477,7 +480,7 @@ static _NIL_TYPE_ IDX(_NIL_TYPE_) {
 /*     cont-stack: [... ... ... INI FILDIM] -> [... ... ... INI FILDIM EXP]*/
 /*  1 expression that fills up the matrice                                */
 /*------------------------------------------------------------------------*/
-static _NIL_TYPE_ FILDIM(_NIL_TYPE_){
+static _NIL_TYPE_ FILDIM(_NIL_TYPE_) {
 	_EXP_TYPE_ tab, siz, idx, val, exp;
 	_UNS_TYPE_ size_int, index_int, val_int, tab_siz_int;
 	_stk_claim_();
@@ -490,8 +493,9 @@ static _NIL_TYPE_ FILDIM(_NIL_TYPE_){
 	val_int = _ag_get_NBU_(val);
 	size_int *= val_int;
 	tab_siz_int = _ag_get_TAB_SIZ_(tab);
-	_ag_set_TAB_EXP_(tab, index_int, val); //put simple exp back in the tab so we can transfer them later in the dimesions
-	if(index_int < tab_siz_int){
+	_ag_set_TAB_EXP_(tab, index_int, val);
+	//put simple exp back in the tab so we can transfer them later in the dimesions
+	if (index_int < tab_siz_int) {
 		idx = _ag_succ_NBR_(idx);
 		index_int = index_int + 1;
 		exp = _ag_get_TAB_EXP_(tab, index_int);
@@ -500,7 +504,7 @@ static _NIL_TYPE_ FILDIM(_NIL_TYPE_){
 		_stk_push_EXP_(idx);
 		_stk_push_EXP_(exp);
 		_stk_push_CNT_(EXP);
-	}else{
+	} else {
 		_EXP_TYPE_ mat;
 		_stk_pop_EXP_(tab);
 		_stk_pop_EXP_(exp);
@@ -513,7 +517,7 @@ static _NIL_TYPE_ FILDIM(_NIL_TYPE_){
 
 		_ag_set_MAT_dim_siz_(mat, _ag_make_NBU_(tab_siz_int));
 		_UNS_TYPE_ i;
-		for(i = 1; i < tab_siz_int; i++){
+		for (i = 1; i < tab_siz_int; i++) {
 			_ag_set_MAT_dim_(mat, _ag_get_TAB_EXP_(tab, i), i);
 		}
 		_stk_push_EXP_(mat);
@@ -523,10 +527,9 @@ static _NIL_TYPE_ FILDIM(_NIL_TYPE_){
 		_stk_poke_CNT_(EXP);
 	}
 
-
 }
 
-static _NIL_TYPE_ FILTAB(_NIL_TYPE_){
+static _NIL_TYPE_ FILTAB(_NIL_TYPE_) {
 
 }
 
@@ -544,7 +547,7 @@ static _NIL_TYPE_ FILTAB(_NIL_TYPE_){
 /*     expr-stack: [... DCT MAT EXP NBR VAL] -> [... ... ... ... ... MAT] */
 /*     cont-stack: [... ... ... ... ... INI] -> [... ... ... ... ... ...] */
 /*------------------------------------------------------------------------*/
-static _NIL_TYPE_ INI(_NIL_TYPE_) { //TODO: matrify
+static _NIL_TYPE_ INI(_NIL_TYPE_) {
 	_EXP_TYPE_ dct, exp, nbr, tab, val;
 	_UNS_TYPE_ ctr, siz;
 	_TAG_TYPE_ tag;
@@ -555,18 +558,18 @@ static _NIL_TYPE_ INI(_NIL_TYPE_) { //TODO: matrify
 	_stk_peek_EXP_(tab);
 	tag = _ag_get_TAG_(tab);
 	ctr = _ag_get_NBU_(nbr); //hoever we in het opvullen zijn
-	if(tag == _TAB_TAG_){
+	if (tag == _TAB_TAG_) {
 		siz = _ag_get_TAB_SIZ_(tab);
 		_ag_set_TAB_EXP_(tab, ctr, val);
-	}else if (tag == _MAT_TAG_){
+	} else if (tag == _MAT_TAG_) {
 		_EXP_TYPE_ dim_size;
 		dim_size = _ag_get_DIM_SIZE_(tab);
 		siz = _ag_get_MAT_TOT_SIZE(tab);
 		siz = siz - _ag_get_NBU_(dim_size);
 		siz = siz - _DIM_SIZE_SIZE_;
 		_ag_set_MAT_val_(tab, _ag_get_NBU_(dim_size), val, ctr);
-	}else{
-		_error_(_TAG_ERROR_	);
+	} else {
+		_error_(_TAG_ERROR_);
 	}
 	if (ctr < siz) { //nog niet klaar
 		nbr = _ag_succ_NBR_(nbr);
@@ -629,8 +632,11 @@ static _NIL_TYPE_ RET(_NIL_TYPE_) {
 }
 
 /*------------------------------------------------------------------------*/
-/*  RPL                                                                   */
+/*  RPL (executes a set to a tab or mat)						          */
 /*     expr-stack: [... ... ... TAB VAL NBR] -> [... ... ... ... ... TAB] */
+/*     cont-stack: [... ... ... ... ... RPL] -> [... ... ... ... ... ...] */
+/*																		  */
+/*     expr-stack: [... ... ... MAT VAL NBR] -> [... ... ... ... ... MAT] */
 /*     cont-stack: [... ... ... ... ... RPL] -> [... ... ... ... ... ...] */
 /*------------------------------------------------------------------------*/
 static _NIL_TYPE_ RPL(_NIL_TYPE_) {
@@ -664,9 +670,17 @@ static _NIL_TYPE_ RPL(_NIL_TYPE_) {
 /*                                                                        */
 /*     expr-stack: [... ... ... ... ... SET] -> [... ... ... ... ... FUN] */
 /*     cont-stack: [... ... ... ... ... SET] -> [... ... ... ... ... ...] */
-/*                                                                        */
-/*     expr-stack: [... ... ... ... ... SET] -> [... ... ... TAB IDX EXP] */
+/*                                                            1       2   */
+/*     expr-stack: [... ... ... ... ... SET] -> [... ... ... TAB NBR EXP] */
 /*     cont-stack: [... ... ... ... ... SET] -> [... ... ... RPL SWP EXP] */
+/*													  2			     	  */
+/*     expr-stack: [... ... ... ... ... SET] -> [... EXP MAT *1* *1* EXP] */
+/*     cont-stack: [... ... ... ... ... SET] -> [... ... ... RPL MIX EXP] */
+/*																     	  */
+/*																		  */
+/*  1 Could also be a matrice because TAB and MAT both use TBL            */
+/*  2 Is the exp to set on the new position                               */
+/*  3 Dimension tab where we need to execute the assignment               */
 /*------------------------------------------------------------------------*/
 static _NIL_TYPE_ SET(_NIL_TYPE_) {
 	_EXP_TYPE_ arg, dct, exp, fun, idx, inv, nam, set, tab;
@@ -700,20 +714,88 @@ static _NIL_TYPE_ SET(_NIL_TYPE_) {
 		_stk_poke_EXP_(fun);
 		_stk_zap_CNT_();
 		break;
-	case _TBL_TAG_: //todo: matrify
+	case _TBL_TAG_:
 		nam = _ag_get_TBL_NAM_(inv);
 		idx = _ag_get_TBL_IDX_(inv);
 		_dct_locate_(nam, dct, _DCT_);
-		tab = _ag_get_DCT_VAL_(dct);
-		_stk_poke_EXP_(tab);
-		_stk_push_EXP_(idx);
-		_stk_push_EXP_(exp);
-		_stk_poke_CNT_(RPL);
-		_stk_push_CNT_(SWP);
-		_stk_push_CNT_(EXP);
+		tab = _ag_get_DCT_VAL_(dct); //could be a matrice too
+		tag = _ag_get_TAG_(tab);
+		if (tag == _MAT_TAG_) {
+			_stk_poke_EXP_(exp);
+			_stk_push_EXP_(tab);
+			_stk_push_EXP_(idx);
+			_stk_push_EXP_(_ZERO_);
+			_stk_push_EXP_(_ONE_);
+			_stk_push_EXP_(_ag_get_TAB_EXP_(idx, 1));
+			_stk_poke_CNT_(RPL);
+			_stk_push_CNT_(SWP);
+			_stk_push_CNT_(MIX);
+			_stk_push_CNT_(EXP);
+		} else if (tag == _TAB_TAG_) {
+			_stk_poke_EXP_(tab);
+			if (_ag_get_TAB_SIZ_(idx) != 1) {
+				_error_(_RNG_ERROR_);
+				return;
+			} else {
+				idx = _ag_get_TAB_EXP_(idx, 1);
+				_stk_push_EXP_(idx);
+				_stk_push_EXP_(exp);
+				_stk_poke_CNT_(RPL);
+				_stk_push_CNT_(SWP);// swaps the value and the index, also pushes exp to evaluate the index
+				_stk_push_CNT_(EXP);
+			}
+		} else {
+			_error_(_TAG_ERROR_);
+		}
 		break;
 	default:
 		_error_(_AGR_ERROR_);
+	}
+}
+
+/*------------------------------------------------------------------------*/
+/*  MIX (calculates the index in a matrice)						          */
+/*     expr-stack: [EXP MAT TAB SIZ CTR VAL] -> [EXP MAT TAB SIZ CTR EXP] */
+/*     cont-stack: [... ... ... ... ... MIX] -> [... ... ... ... MIX EXP] */
+/*																	  1	  */
+/*     expr-stack: [EXP MAT TAB SIZ CTR VAL] -> [... ... ... MAT IDX EXP] */
+/*     cont-stack: [... ... ... ... ... MIX] -> [... ... ... ... ... EXP] */
+/*																		  */
+/*------------------------------------------------------------------------*/
+static _NIL_TYPE_ MIX (_NIL_TYPE_){
+	_EXP_TYPE_ mat, siz, ctr, val, dim, dim_siz, tab;
+	_UNS_TYPE_ dim_siz_int, ctr_int, siz_int;
+	_stk_claim_();
+	_stk_pop_EXP_(val);
+	_stk_pop_EXP_(ctr);
+	_stk_pop_EXP_(siz);
+	_stk_pop_EXP_(tab);
+	_stk_peek_EXP_(mat);
+	siz_int = _ag_get_NBU_(siz);
+	dim_siz = _ag_get_DIM_SIZE_(mat);
+	dim_siz_int = _ag_get_NBU_(dim_siz);
+	ctr_int = _ag_get_NBU_(ctr);
+	if(dim_siz_int > ctr_int){
+		dim = _ag_get_MAT_DIM_(mat, ctr_int);
+		siz_int += (_ag_get_NBU_(val) * _ag_get_NBU_(dim));
+		siz = _ag_make_NBU_(siz_int);
+		 ctr = _ag_succ_NBR_(ctr);
+		val = _ag_get_TAB_EXP_(tab, _ag_get_NBU_(ctr));
+		_stk_push_EXP_(tab);
+		_stk_push_EXP_(siz);
+		_stk_push_EXP_(ctr);
+		_stk_push_EXP_(val);
+		_stk_push_CNT_(EXP);
+	}else{
+		siz_int += _ag_get_NBU_(val);
+		siz_int -= 1;
+		siz = _ag_make_NBU_(siz_int);
+		_stk_zap_EXP_();
+		_stk_peek_EXP_(val);
+		_stk_poke_EXP_(mat);
+		_stk_push_EXP_(siz);
+		_stk_push_EXP_(val);
+		_stk_poke_CNT_(EXP);
 	}
 }
 
