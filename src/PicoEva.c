@@ -43,7 +43,6 @@ static _NIL_TYPE_ VAR(_NIL_TYPE_);
 static _NIL_TYPE_ FIM(_NIL_TYPE_);
 static _NIL_TYPE_ FAB(_NIL_TYPE_);
 static _NIL_TYPE_ MIX(_NIL_TYPE_);
-static _NIL_TYPE_ RMA(_NIL_TYPE_);
 
 /* private variables */
 
@@ -788,7 +787,7 @@ static _NIL_TYPE_ SET(_NIL_TYPE_) {
 /*------------------------------------------------------------------------*/
 static _NIL_TYPE_ MIX (_NIL_TYPE_){
 	_EXP_TYPE_ mat, siz, ctr, val, dim, dim_siz, tab;
-	_UNS_TYPE_ dim_siz_int, ctr_int, siz_int;
+	_UNS_TYPE_ dim_siz_int, ctr_int, siz_int, cur_idx;
 	_stk_claim_();
 	_stk_pop_EXP_(val);
 	_stk_pop_EXP_(ctr);
@@ -801,20 +800,24 @@ static _NIL_TYPE_ MIX (_NIL_TYPE_){
 	ctr_int = _ag_get_NBU_(ctr);
 	if(dim_siz_int > ctr_int){
 		dim = _ag_get_MAT_DIM_(mat, ctr_int);
-		siz_int += ((_ag_get_NBU_(val) - 1) * _ag_get_NBU_(dim));
-		siz = _ag_make_NBU_(siz_int);
-		ctr = _ag_succ_NBR_(ctr);
-		val = _ag_get_TAB_EXP_(tab, _ag_get_NBU_(ctr));
-		_stk_push_EXP_(tab);
-		_stk_push_EXP_(siz);
-		_stk_push_EXP_(ctr);
-		_stk_push_EXP_(val);
-		_stk_push_CNT_(EXP);
+		cur_idx = _ag_get_NBU_(val);
+		if((cur_idx > 0) && (cur_idx <= _ag_get_NBU_(dim))){
+			siz_int += ((cur_idx - 1) * _ag_get_NBU_(dim));
+			siz = _ag_make_NBU_(siz_int);
+			ctr = _ag_succ_NBR_(ctr);
+			val = _ag_get_TAB_EXP_(tab, _ag_get_NBU_(ctr));
+			_stk_push_EXP_(tab);
+			_stk_push_EXP_(siz);
+			_stk_push_EXP_(ctr);
+			_stk_push_EXP_(val);
+			_stk_push_CNT_(EXP);
+		}else{
+			_error_(_IIX_ERROR_);
+		}
 	}else{
 		siz_int += _ag_get_NBU_(val);
 		siz_int += dim_siz_int;
 		siz_int += _DIM_SIZE_SIZE_;
-		//siz_int -= 1;
 		siz = _ag_make_NBU_(siz_int);
 		_stk_zap_EXP_();
 		_stk_peek_EXP_(val);
@@ -889,10 +892,15 @@ static _NIL_TYPE_ TBL(_NIL_TYPE_) {
 	tab = _ag_get_DCT_VAL_(dct);
 	tag = _ag_get_TAG_(tab);
 	if(tag == _MAT_TAG_ && (_ag_get_NBU_(_ag_get_DIM_SIZE_(tab)) == _ag_get_TAB_SIZ_(idx))){
-		_stk_poke_EXP_(tab);
+		_stk_poke_EXP_(_VOID_);
+		_stk_push_EXP_(tab);
 		_stk_push_EXP_(idx);
-		_stk_poke_CNT_(RMA);
+		_stk_push_EXP_(_ZERO_);
+		_stk_push_EXP_(_ONE_);
+		_stk_push_EXP_(_ag_get_TAB_EXP_(idx, 1));
+		_stk_poke_CNT_(REF);
 		_stk_push_CNT_(MIX);
+		_stk_push_CNT_(EXP);
 	}else if(tag == _TAB_TAG_ && (_ag_get_TAB_SIZ_(idx) == 1)){
 		idx = _ag_get_TAB_EXP_(idx, 1);
 		_stk_poke_EXP_(tab);
@@ -904,21 +912,6 @@ static _NIL_TYPE_ TBL(_NIL_TYPE_) {
 	}
 }
 
-/*------------------------------------------------------------------------*/
-/*  RMA (reference in a matrice)                                          */
-/*     expr-stack: [... ... ... ... MAT IDX] -> [... ... ... ... ... VAL] */
-/*     cont-stack: [... ... ... ... ... RMA] -> [... ... ... ... ... ...] */
-/*------------------------------------------------------------------------*/
-static _NIL_TYPE_ RMA(_NIL_TYPE_){
-	_EXP_TYPE_ mat, idx, val;
-	_UNS_TYPE_ idx_int;
-	_stk_pop_EXP_(idx);
-	_stk_peek_EXP_(mat);
-	idx_int = _ag_get_NBU_(idx);
-	val = _ag_get_MAT_EXP_(mat, idx_int);
-	_stk_poke_EXP_(val);
-	_stk_zap_CNT_();
-}
 
 /*------------------------------------------------------------------------*/
 /*  VAR                                                                   */
