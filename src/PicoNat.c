@@ -2229,6 +2229,10 @@ static _NIL_TYPE_ SZU(_NIL_TYPE_)
      { case _TAB_TAG_: 
          _stk_poke_EXP_(_ag_make_NBU_(_ag_get_TAB_SIZ_(val)));    
          return;
+       case _MAT_TAG_:
+		_stk_poke_EXP_(
+				_ag_make_NBU_(_ag_get_MAT_TOT_SIZE(val) - (_DIM_SIZE_SIZE_ + _ag_get_NBU_(_ag_get_DIM_SIZE_(val)))));
+		return;
        case _TXT_TAG_:
          str = _ag_get_TXT_(val);
          _stk_poke_EXP_(_ag_make_NBU_(strlen(str))); 
