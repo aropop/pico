@@ -43,6 +43,7 @@ static _NIL_TYPE_ VAR(_NIL_TYPE_);
 static _NIL_TYPE_ FIM(_NIL_TYPE_);
 static _NIL_TYPE_ FAB(_NIL_TYPE_);
 static _NIL_TYPE_ MIX(_NIL_TYPE_);
+static _NIL_TYPE_ SWI(_NIL_TYPE_);
 
 /* private variables */
 
@@ -499,7 +500,7 @@ static _NIL_TYPE_ FIM(_NIL_TYPE_) {
 		tag = _ag_get_TAG_(mat);
 		_ag_set_MAT_dim_siz_(mat, _ag_make_NBU_(tab_siz_int));
 		_UNS_TYPE_ i;
-		for (i = 1; i < tab_siz_int; i++) {
+		for (i = 1; i <= tab_siz_int; i++) {
 			_ag_set_MAT_dim_(mat, _ag_get_TAB_EXP_(tab, i), i);
 		}
 		_stk_push_EXP_(mat);
@@ -529,9 +530,9 @@ static _NIL_TYPE_ FAB(_NIL_TYPE_) {
 	_stk_pop_EXP_(idx);
 	_stk_peek_EXP_(exp);
 	tag = _ag_get_TAG_(idx);
-	if(tag == _NBR_TAG_){
+	if (tag == _NBR_TAG_) {
 		siz = _ag_get_NBU_(idx);
-		if(siz > 0){
+		if (siz > 0) {
 			_mem_claim_SIZ_(siz);
 			tab = _ag_make_TAB_(siz);
 			_stk_poke_EXP_(tab);
@@ -540,7 +541,7 @@ static _NIL_TYPE_ FAB(_NIL_TYPE_) {
 			_stk_push_EXP_(exp);
 			_stk_poke_CNT_(INI);
 			_stk_push_CNT_(EXP);
-		}else if (siz == 0){
+		} else if (siz == 0) {
 			_stk_zap_EXP_();
 			_stk_peek_EXP_(dct);
 			_ag_set_DCT_VAL_(dct, _EMPTY_);
@@ -548,10 +549,10 @@ static _NIL_TYPE_ FAB(_NIL_TYPE_) {
 			_DCT_ = dct;
 			_stk_poke_EXP_(_EMPTY_);
 			_stk_zap_CNT_();
-		}else{
+		} else {
 			_error_(_IIX_ERROR_);
 		}
-	}else{
+	} else {
 		_error_(_IIX_ERROR_);
 	}
 }
@@ -594,7 +595,7 @@ static _NIL_TYPE_ INI(_NIL_TYPE_) {
 	} else {
 		_error_(_TAG_ERROR_);
 	}
-	if (ctr < siz) { //nog niet klaar
+	if (ctr < siz) {
 		nbr = _ag_succ_NBR_(nbr);
 		_stk_push_EXP_(exp);
 		_stk_push_EXP_(nbr);
@@ -636,8 +637,9 @@ static _NIL_TYPE_ REF(_NIL_TYPE_) {
 				_error_(_RNG_ERROR_);
 		} else
 			_error_(_IIX_ERROR_);
-	} else
+	} else {
 		_error_(_NAT_ERROR_);
+	}
 }
 
 /*------------------------------------------------------------------------*/
@@ -698,7 +700,7 @@ static _NIL_TYPE_ RPL(_NIL_TYPE_) {
 /*     cont-stack: [... ... ... ... ... SET] -> [... ... ... RPL SWP EXP] */
 /*													  2			     	  */
 /*     expr-stack: [... ... ... ... ... SET] -> [... EXP MAT *1* *1* EXP] */
-/*     cont-stack: [... ... ... ... ... SET] -> [... ... ... RPL MIX EXP] */
+/*     cont-stack: [... ... ... ... ... SET] -> [... ... RPL SWI MIX EXP] */
 /*																     	  */
 /*																		  */
 /*  1 Could also be a matrice because TAB and MAT both use TBL            */
@@ -751,6 +753,7 @@ static _NIL_TYPE_ SET(_NIL_TYPE_) {
 			_stk_push_EXP_(_ONE_);
 			_stk_push_EXP_(_ag_get_TAB_EXP_(idx, 1));
 			_stk_poke_CNT_(RPL);
+			_stk_push_CNT_(SWI);
 			_stk_push_CNT_(SWP);
 			_stk_push_CNT_(MIX);
 			_stk_push_CNT_(EXP);
@@ -764,7 +767,8 @@ static _NIL_TYPE_ SET(_NIL_TYPE_) {
 				_stk_push_EXP_(idx);
 				_stk_push_EXP_(exp);
 				_stk_poke_CNT_(RPL);
-				_stk_push_CNT_(SWP);// swaps the value and the index, also pushes exp to evaluate the index
+				_stk_push_CNT_(SWP);
+				// swaps the value and the index, also pushes exp to evaluate the index
 				_stk_push_CNT_(EXP);
 			}
 		} else {
@@ -778,16 +782,16 @@ static _NIL_TYPE_ SET(_NIL_TYPE_) {
 
 /*------------------------------------------------------------------------*/
 /*  MIX (calculates the index in a matrice)						          */
-/*     expr-stack: [EXP MAT TAB SIZ CTR VAL] -> [EXP MAT TAB SIZ CTR EXP] */
+/*     expr-stack: [... MAT TAB SIZ CTR VAL] -> [... MAT TAB SIZ CTR EXP] */
 /*     cont-stack: [... ... ... ... ... MIX] -> [... ... ... ... MIX EXP] */
 /*																	  1	  */
-/*     expr-stack: [EXP MAT TAB SIZ CTR VAL] -> [... ... ... MAT IDX EXP] */
-/*     cont-stack: [... ... ... ... ... MIX] -> [... ... ... ... ... EXP] */
+/*     expr-stack: [... MAT TAB SIZ CTR VAL] -> [... ... ... ... MAT IDX] */
+/*     cont-stack: [... ... ... ... ... MIX] -> [... ... ... ... ... ...] */
 /*																		  */
 /*------------------------------------------------------------------------*/
-static _NIL_TYPE_ MIX (_NIL_TYPE_){
+static _NIL_TYPE_ MIX(_NIL_TYPE_) {
 	_EXP_TYPE_ mat, siz, ctr, val, dim, dim_siz, tab;
-	_UNS_TYPE_ dim_siz_int, ctr_int, siz_int, cur_idx;
+	_UNS_TYPE_ dim_siz_int, ctr_int, siz_int, cur_idx, dim_int;
 	_stk_claim_();
 	_stk_pop_EXP_(val);
 	_stk_pop_EXP_(ctr);
@@ -798,10 +802,11 @@ static _NIL_TYPE_ MIX (_NIL_TYPE_){
 	dim_siz = _ag_get_DIM_SIZE_(mat);
 	dim_siz_int = _ag_get_NBU_(dim_siz);
 	ctr_int = _ag_get_NBU_(ctr);
-	if(dim_siz_int > ctr_int){
-		dim = _ag_get_MAT_DIM_(mat, ctr_int);
+	dim = _ag_get_MAT_DIM_(mat, ctr_int);
+	if (dim_siz_int > ctr_int) {
 		cur_idx = _ag_get_NBU_(val);
-		if((cur_idx > 0) && (cur_idx <= _ag_get_NBU_(dim))){
+		dim_int = _ag_get_NBU_(dim);
+		if ((cur_idx > 0) && (cur_idx <= _ag_get_NBU_(dim))) {
 			siz_int += ((cur_idx - 1) * _ag_get_NBU_(dim));
 			siz = _ag_make_NBU_(siz_int);
 			ctr = _ag_succ_NBR_(ctr);
@@ -811,21 +816,43 @@ static _NIL_TYPE_ MIX (_NIL_TYPE_){
 			_stk_push_EXP_(ctr);
 			_stk_push_EXP_(val);
 			_stk_push_CNT_(EXP);
-		}else{
+		} else {
 			_error_(_IIX_ERROR_);
 		}
-	}else{
-		siz_int += _ag_get_NBU_(val);
-		siz_int += dim_siz_int;
-		siz_int += _DIM_SIZE_SIZE_;
-		siz = _ag_make_NBU_(siz_int);
-		_stk_zap_EXP_();
-		_stk_peek_EXP_(val);
-		_stk_poke_EXP_(mat);
-		_stk_push_EXP_(siz);
-		_stk_push_EXP_(val);
-		_stk_poke_CNT_(EXP);
+	} else {
+		_UNS_TYPE_ cur_idx;
+		cur_idx = _ag_get_NBU_(val);
+		if ((cur_idx > 0) && (cur_idx <= _ag_get_NBU_(dim))) {
+			siz_int += cur_idx;
+			siz_int += dim_siz_int;
+			siz_int += _DIM_SIZE_SIZE_;
+			siz = _ag_make_NBU_(siz_int);
+			_stk_poke_EXP_(mat);
+			_stk_push_EXP_(siz);
+			_stk_zap_CNT_();
+		} else {
+			_UNS_TYPE_ tst = _ag_get_NBU_(dim);
+			_error_(_IIX_ERROR_);
+		}
 	}
+}
+
+/*------------------------------------------------------------------------*/
+/*  SWI                                                                   */
+/*     expr-stack: [... ... ... EXP MAT IDX] -> [... ... ... MAT IDX EXP] */
+/*     cont-stack: [... ... ... ... ... SWI] -> [... ... ... ... ... EXP] */
+/*                                                                        */
+/*------------------------------------------------------------------------*/
+static _NIL_TYPE_ SWI(_NIL_TYPE_) {
+	_EXP_TYPE_ idx, mat, exp;
+
+	_stk_pop_EXP_(idx);
+	_stk_pop_EXP_(mat);
+	_stk_pop_EXP_(exp);
+	_stk_push_EXP_(mat);
+	_stk_push_EXP_(idx);
+	_stk_push_EXP_(exp);
+	_stk_poke_CNT_(EXP);
 }
 
 /*------------------------------------------------------------------------*/
@@ -891,7 +918,8 @@ static _NIL_TYPE_ TBL(_NIL_TYPE_) {
 	_dct_locate_(nam, dct, _DCT_);
 	tab = _ag_get_DCT_VAL_(dct);
 	tag = _ag_get_TAG_(tab);
-	if(tag == _MAT_TAG_ && (_ag_get_NBU_(_ag_get_DIM_SIZE_(tab)) == _ag_get_TAB_SIZ_(idx))){
+	if (tag == _MAT_TAG_
+			&& (_ag_get_NBU_(_ag_get_DIM_SIZE_(tab)) == _ag_get_TAB_SIZ_(idx))) {
 		_stk_poke_EXP_(_VOID_);
 		_stk_push_EXP_(tab);
 		_stk_push_EXP_(idx);
@@ -901,17 +929,16 @@ static _NIL_TYPE_ TBL(_NIL_TYPE_) {
 		_stk_poke_CNT_(REF);
 		_stk_push_CNT_(MIX);
 		_stk_push_CNT_(EXP);
-	}else if(tag == _TAB_TAG_ && (_ag_get_TAB_SIZ_(idx) == 1)){
+	} else if (tag == _TAB_TAG_ && (_ag_get_TAB_SIZ_(idx) == 1)) {
 		idx = _ag_get_TAB_EXP_(idx, 1);
 		_stk_poke_EXP_(tab);
 		_stk_push_EXP_(idx);
 		_stk_poke_CNT_(REF);
 		_stk_push_CNT_(EXP);
-	}else{
+	} else {
 		_error_(_IIX_ERROR_);
 	}
 }
-
 
 /*------------------------------------------------------------------------*/
 /*  VAR                                                                   */
