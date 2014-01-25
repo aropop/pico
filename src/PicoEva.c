@@ -753,8 +753,8 @@ static _NIL_TYPE_ SET(_NIL_TYPE_) {
 			_stk_push_EXP_(_ONE_);
 			_stk_push_EXP_(_ag_get_TAB_EXP_(idx, 1));
 			_stk_poke_CNT_(RPL);
-			_stk_push_CNT_(SWI);
 			_stk_push_CNT_(SWP);
+			_stk_push_CNT_(SWI);
 			_stk_push_CNT_(MIX);
 			_stk_push_CNT_(EXP);
 		} else if (tag == _TAB_TAG_) {
