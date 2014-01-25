@@ -71,7 +71,12 @@
     deify_TAB(Tab):
       if(is_table(Tab),
          TAB(Tab),
-         error('text value required'));
+         error('table required'));
+
+    deify_MAT(Dim, Tab): 
+      if(is_table(Dim),
+            MAT(Tab, Dim), 
+            error('table required as dimensions'));
 
     arg_0(Arg, Act()): 
       {tab: reify_TAB(Arg);
@@ -213,6 +218,19 @@
             deify_NBR(if(p[TAG_idx] = MAT_tag, 
                               size(reify_MAT(p)),
                               size(reify_TAB(p)))));
+    mat_fun@Arg: `can't define this as an def function because we need 2 tabs as arguments, otherwise we need to put an error`
+      arg_2(Arg,
+                  { dim : reify_TAB(p);
+                    vals: reify_TAB(q);
+                    dim_siz:1;
+                    for(i:1, i:=i+1, i < (size(dim)+1),
+                         dim_siz := dim_siz * reify_NBR(eval(dim[i])));
+                    if(dim_siz = size(vals), 
+                               { for(i:=1, i:=i+1, i < (dim_siz + 1),
+                                    vals[i]:= eval(vals[i]));
+                                 deify_MAT(dim, vals) },
+                               error('Invalid size of values')) }); 
+                    
 
     display_fun@Arg:
       {tab: reify_TAB(Arg);
@@ -230,7 +248,7 @@
               'exp', 'log', 'explode', 'implode', 
               'is_number', 'is_fraction', 'is_text', 
               'is_function', 'is_table', 'is_void', 
-              'size', 'display','accept' ];
+              'size', 'display','accept', 'mat' ];
 
     fun_tab: [add_fun,
               sub_fun,
@@ -266,7 +284,8 @@
               type_fun(VOI_tag),
               size_fun,
               display_fun,
-              accept_fun];
+              accept_fun,
+              mat_fun];
 
       make_global():=
         {global: make_dict();
