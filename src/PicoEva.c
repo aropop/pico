@@ -790,7 +790,7 @@ static _NIL_TYPE_ SET(_NIL_TYPE_) {
 /*																		  */
 /*------------------------------------------------------------------------*/
 static _NIL_TYPE_ MIX(_NIL_TYPE_) {
-	_EXP_TYPE_ mat, siz, ctr, val, dim, dim_siz, tab;
+	_EXP_TYPE_ mat, siz, ctr, val, dim, dim_check, dim_siz, tab;
 	_UNS_TYPE_ dim_siz_int, ctr_int, siz_int, cur_idx, dim_int;
 	_stk_claim_();
 	_stk_pop_EXP_(val);
@@ -802,11 +802,12 @@ static _NIL_TYPE_ MIX(_NIL_TYPE_) {
 	dim_siz = _ag_get_DIM_SIZE_(mat);
 	dim_siz_int = _ag_get_NBU_(dim_siz);
 	ctr_int = _ag_get_NBU_(ctr);
-	dim = _ag_get_MAT_DIM_(mat, ctr_int);
+	dim = _ag_get_MAT_DIM_(mat, dim_siz_int - (ctr_int - 1));
+	dim_check = _ag_get_MAT_DIM_(mat, ctr_int);
 	if (dim_siz_int > ctr_int) {
 		cur_idx = _ag_get_NBU_(val);
 		dim_int = _ag_get_NBU_(dim);
-		if ((cur_idx > 0) && (cur_idx <= _ag_get_NBU_(dim))) {
+		if ((cur_idx > 0) && (cur_idx <= _ag_get_NBU_(dim_check))) {
 			siz_int += ((cur_idx - 1) * _ag_get_NBU_(dim));
 			siz = _ag_make_NBU_(siz_int);
 			ctr = _ag_succ_NBR_(ctr);
@@ -822,7 +823,7 @@ static _NIL_TYPE_ MIX(_NIL_TYPE_) {
 	} else {
 		_UNS_TYPE_ cur_idx;
 		cur_idx = _ag_get_NBU_(val);
-		if ((cur_idx > 0) && (cur_idx <= _ag_get_NBU_(dim))) {
+		if ((cur_idx > 0) && (cur_idx <= _ag_get_NBU_(dim_check))) {
 			siz_int += cur_idx;
 			siz_int += dim_siz_int;
 			siz_int += _DIM_SIZE_SIZE_;
