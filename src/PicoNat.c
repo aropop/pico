@@ -320,6 +320,8 @@
 #define fac_STR "fac"
 #define odd_STR "odd"
 #define evn_STR "even"
+//project
+#define mat_STR "mat"
 
 /* private prototypes */
 
@@ -460,6 +462,9 @@ static _NIL_TYPE_ MKU(_NIL_TYPE_);
 static _NIL_TYPE_ SWU(_NIL_TYPE_);
 static _NIL_TYPE_ ERU(_NIL_TYPE_);
 
+//project
+static _NIL_TYPE_ MAT(_NIL_TYPE_);
+
 //wpo session 5
 static _NIL_TYPE_ FAC(_NIL_TYPE_);
 static _NIL_TYPE_ ODD(_NIL_TYPE_);
@@ -492,12 +497,14 @@ BEG, CLL, CON, IFF, WHI, UNT, FOR,
 LOD, REA, EVA, PRI, TAG, MAK,
 /*--ESCAPE---------*/
 ESC, ERR,
+/*--PROJECT--------*/
+MAT,
 //wpo session 5
 		FAC, ODD, EVN };
 
 static const _STR_TYPE_ STR_tab[] =
 /*--ARITHMETIC-----*/
-{  add_STR, sub_STR, mul_STR, div_STR, idv_STR, rem_STR, pow_STR,
+{ add_STR, sub_STR, mul_STR, div_STR, idv_STR, rem_STR, pow_STR,
 		/*--RELATIONAL-----*/lss_STR, eql_STR, grt_STR, eqv_STR,
 		/*--CONVERSION-----*/trn_STR, abs_STR, chr_STR, ord_STR, rnd_STR,
 		num_STR, tex_STR, /*--TRANSCENDENTAL-*/sqt_STR, sin_STR, cos_STR,
@@ -510,6 +517,8 @@ static const _STR_TYPE_ STR_tab[] =
 		whi_STR, unt_STR, for_STR, /*--METALEVEL------*/lod_STR, rea_STR,
 		eva_STR, pri_STR, tag_STR, mak_STR, /*--ESCAPE---------*/esc_STR,
 		err_STR,
+		//project
+		mat_STR,
 		//wpo 5
 		fac_STR, odd_STR, evn_STR };
 
@@ -2374,6 +2383,113 @@ static _NIL_TYPE_ TBX(_NIL_TYPE_) {
 	}
 	_stk_poke_EXP_(tab);
 	_stk_zap_CNT_();
+}
+
+/*------------------------------------------------------------------------*/
+/*  DFN                                                                   */
+/*     expr-stack: [... ... ... ... MAT DAT] -> [... ... ... ... ... MAT] */
+/*     cont-stack: [... ... ... ... ... DFN] -> [... ... ... ... ... ...] */
+/*------------------------------------------------------------------------*/
+static _NIL_TYPE_ DFN(_NIL_TYPE_) {
+	_EXP_TYPE_ mat, data, cur;
+	_TAG_TYPE_ tag;
+	_stk_pop_EXP_(data);
+	_stk_peek_EXP_(mat);
+	tag = _ag_get_TAG_(data);
+	if (tag != _TAB_TAG_) {
+		_error_(_ATC_ERROR_);
+		return;
+	} else if (_ag_get_TAB_SIZ_(data) //moeten even groot zijn
+			!= (_ag_get_MAT_TOT_SIZE(mat)
+					- (_DIM_SIZE_SIZE_ + _ag_get_NBU_(_ag_get_DIM_SIZE_(mat))))) {
+		_UNS_TYPE_ bl,bll;
+		bl = _ag_get_TAB_SIZ_(data);
+		bll = (_ag_get_MAT_TOT_SIZE(mat)
+				- (_DIM_SIZE_SIZE_ + _ag_get_NBU_(_ag_get_DIM_SIZE_(mat))));
+		_error_(_ATC_ERROR_);
+		return;
+	} else {
+		_UNS_TYPE_ i;
+		for (i = 1; i < _ag_get_TAB_SIZ_(data) + 1; i++) {
+			cur = _ag_get_TAB_EXP_(data, i);
+			_ag_set_MAT_val_(mat, _ag_get_NBU_(_ag_get_DIM_SIZE_(mat)), cur, i);
+		}
+		_stk_poke_EXP_(mat);
+		_stk_zap_CNT_();
+	}
+
+}
+
+/*------------------------------------------------------------------------*/
+/*  DIM                                                                   */
+/*     expr-stack: [... ... ... ... DAT DIM] -> [... ... ... ... MAT DAT] */
+/*     cont-stack: [... ... ... ... ... DIM] -> [... ... ... ... DFN EVL] */
+/*------------------------------------------------------------------------*/
+static _NIL_TYPE_ DIM(_NIL_TYPE_) {
+	_EXP_TYPE_ dim, data, cur, mat;
+	_TAG_TYPE_ tag;
+	_stk_pop_EXP_(dim);
+	_stk_peek_EXP_(data);
+	tag = _ag_get_TAG_(dim);
+	if (tag != _TAB_TAG_) {
+		_error_(_ATC_ERROR_);
+		return;
+	} else if (_ag_get_TAB_SIZ_(dim) == 0) {
+		_error_(_ATC_ERROR_);
+		return;
+	} else {
+		_UNS_TYPE_ siz, cur_num;
+		siz = 1;
+		_UNS_TYPE_ i;
+		for (i = 1; i < _ag_get_TAB_SIZ_(dim) + 1; i++) {
+			cur = _ag_get_TAB_EXP_(dim, i);
+			if (_ag_get_TAG_(cur) != _NBR_TAG_) {
+				_error_(_ATC_ERROR_);
+				return;
+			} else {
+				cur_num = _ag_get_NBU_(cur);
+				if (cur_num > 0)
+					siz = siz * cur_num;
+				else
+					_error_(_ATC_ERROR_);
+			}
+		}
+		siz = siz + _ag_get_TAB_SIZ_(dim) + _DIM_SIZE_SIZE_;
+		_mem_claim_SIZ_(siz);
+		mat = _ag_make_MAT(siz);
+		_ag_set_MAT_dim_siz_(mat, _ag_make_NBU_(_ag_get_TAB_SIZ_(dim)));
+		for (i = 1; i < _ag_get_TAB_SIZ_(dim) + 1; i++) {
+			cur = _ag_get_TAB_EXP_(dim, i);
+			_ag_set_MAT_dim_(mat, cur, i);
+		}
+		_stk_poke_EXP_(mat);
+		_stk_push_EXP_(data);
+		_stk_poke_CNT_(DFN);
+		_stk_push_CNT_(EVL);
+	}
+}
+
+/*------------------------------------------------------------------------*/
+/*  MAT                                                                   */
+/*     expr-stack: [... ... ... ... ... ARG] -> [... ... ... ... DAT DIM] */
+/*     cont-stack: [... ... ... ... ... MAT] -> [... ... ... ... DIM EVL] */
+/*------------------------------------------------------------------------*/
+static _NIL_TYPE_ MAT(_NIL_TYPE_) {
+	_EXP_TYPE_ arg, dim, data;
+	_UNS_TYPE_ siz;
+	_stk_claim_();
+	_stk_peek_EXP_(arg);
+	siz = _ag_get_TAB_SIZ_(arg);
+	if (siz != 2) {
+		_error_(_ATC_ERROR_);
+		return;
+	}
+	dim = _ag_get_TAB_EXP_(arg, 1);
+	data = _ag_get_TAB_EXP_(arg, 2);
+	_stk_poke_EXP_(data);
+	_stk_push_EXP_(dim);
+	_stk_poke_CNT_(DIM);
+	_stk_push_CNT_(EVL);
 }
 
 /*------------------------------------------------------------------------*/
