@@ -631,6 +631,7 @@ static _NIL_TYPE_ REF(_NIL_TYPE_) {
 			ctr = _ag_get_NBU_(nbr);
 			if ((ctr > 0) && (ctr <= siz)) {
 				exp = _ag_get_TAB_EXP_(tab, ctr);
+				_TAG_TYPE_ tag =  _ag_get_TAG_(exp);
 				_stk_poke_EXP_(exp);
 				_stk_zap_CNT_();
 			} else
@@ -921,8 +922,7 @@ static _NIL_TYPE_ TBL(_NIL_TYPE_) {
 	tag = _ag_get_TAG_(tab);
 	if (tag == _MAT_TAG_
 			&& (_ag_get_NBU_(_ag_get_DIM_SIZE_(tab)) == _ag_get_TAB_SIZ_(idx))) {
-		_stk_poke_EXP_(_VOID_);
-		_stk_push_EXP_(tab);
+		_stk_poke_EXP_(tab);
 		_stk_push_EXP_(idx);
 		_stk_push_EXP_(_ZERO_);
 		_stk_push_EXP_(_ONE_);

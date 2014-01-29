@@ -355,7 +355,7 @@ static _NIL_TYPE_ FCt(_NIL_TYPE_) {
 /*     expr-stack: [... ... ... ... NAM EXP] -> [... ... ... ... NAM EXP] */
 /*     cont-stack: [... ... ... ... CNT IDX] -> [... ... ... ... ... CNT] */
 /*------------------------------------------------------------------------*/
-static _NIL_TYPE_ IDX(_NIL_TYPE_) { //todo aanpassen
+static _NIL_TYPE_ IDX(_NIL_TYPE_) {
 	if (current_token == _RBR_TOKEN_) {
 		READ_TOKEN();
 		_stk_zap_CNT_();
@@ -553,7 +553,6 @@ static _NIL_TYPE_ REF(_NIL_TYPE_) {
 			_stk_push_EXP_(_FALSE_);
 			//zet one op de stack waarna de index expressie erop komt, wij willen natuurlijk dat er meer opkomt
 			_stk_push_CNT_(COM);//zouden ervoor moeten zorgen dat com geen apl meer achterlaat
-			//_stk_push_CNT_(IDX);
 			_stk_push_CNT_(EXP);
 			break;
 		default:
@@ -692,17 +691,20 @@ static _NIL_TYPE_ SMC(_NIL_TYPE_) {
 /*     expr-stack: [... ... ... ... NAM EXP] -> [... ... ... ... ... TBL] */
 /*     cont-stack: [... ... ... ... CNT TBL] -> [... ... ... ... ... CNT] */
 /*------------------------------------------------------------------------*/
-static _NIL_TYPE_ TBL(_NIL_TYPE_) { //todo aanpassen
+static _NIL_TYPE_ TBL(_NIL_TYPE_) { //EXP zou hier nu een tab moeten zijn
 	_EXP_TYPE_ idx, nam, tbl;
 	_mem_claim_();
 	tbl = _ag_make_TBL_();
 	_stk_pop_EXP_(idx);
 	//TAB now
-	_stk_peek_EXP_(nam);
-	_ag_set_TBL_NAM_(tbl, nam);
-	_ag_set_TBL_IDX_(tbl, idx);
-	_stk_poke_EXP_(tbl);
-	_stk_zap_CNT_();
+	if(_ag_get_TAG_(idx) == _TAB_TAG_){
+		_stk_peek_EXP_(nam);
+		_ag_set_TBL_NAM_(tbl, nam);
+		_ag_set_TBL_IDX_(tbl, idx);
+		_stk_poke_EXP_(tbl);
+		_stk_zap_CNT_();
+	}else
+		_error_(_IIX_ERROR_);
 }
 
 /*------------------------------------------------------------------------*/
